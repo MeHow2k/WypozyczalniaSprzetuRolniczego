@@ -44,7 +44,7 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
 
         // przypisanie domyślnej roli CLIENT
-        Role clientRole = roleRepository.findByName("CLIENT")
+        Role clientRole = roleRepository.findByName("ROLE_CLIENT")
                 .orElseThrow(() -> new RuntimeException("Error: Rola CLIENT nie istnieje w bazie!"));
 
         user.setRoles(Set.of(clientRole));

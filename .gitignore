@@ -1,0 +1,27 @@
+#Java Backend
+/target
+
+#Frontend
+/wypozyczalnia-frontend/logs
+/wypozyczalnia-frontend/*.log
+/wypozyczalnia-frontend/npm-debug.log*
+/wypozyczalnia-frontend/yarn-debug.log*
+/wypozyczalnia-frontend/yarn-error.log*
+/wypozyczalnia-frontend/pnpm-debug.log*
+/wypozyczalnia-frontend/lerna-debug.log*
+
+/wypozyczalnia-frontend/node_modules
+/wypozyczalnia-frontend/dist
+/wypozyczalnia-frontend/dist-ssr
+/wypozyczalnia-frontend/*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
