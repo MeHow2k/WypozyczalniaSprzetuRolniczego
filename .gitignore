@@ -10,7 +10,7 @@ Frontend/wypozyczalnia-frontend/yarn-error.log*
 Frontend/wypozyczalnia-frontend/pnpm-debug.log*
 Frontend/wypozyczalnia-frontend/lerna-debug.log*
 
-Frontend/wypozyczalnia-frontend/node_modules
+Frontend/wypozyczalnia-frontend/node_modules/
 Frontend/wypozyczalnia-frontend/dist
 Frontend/wypozyczalnia-frontend/dist-ssr
 Frontend/wypozyczalnia-frontend/*.local
