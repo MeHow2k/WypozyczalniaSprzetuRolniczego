@@ -2,18 +2,18 @@
 /target
 
 #Frontend
-/wypozyczalnia-frontend/logs
-/wypozyczalnia-frontend/*.log
-/wypozyczalnia-frontend/npm-debug.log*
-/wypozyczalnia-frontend/yarn-debug.log*
-/wypozyczalnia-frontend/yarn-error.log*
-/wypozyczalnia-frontend/pnpm-debug.log*
-/wypozyczalnia-frontend/lerna-debug.log*
+Frontend/wypozyczalnia-frontend/logs
+Frontend/wypozyczalnia-frontend/*.log
+Frontend/wypozyczalnia-frontend/npm-debug.log*
+Frontend/wypozyczalnia-frontend/yarn-debug.log*
+Frontend/wypozyczalnia-frontend/yarn-error.log*
+Frontend/wypozyczalnia-frontend/pnpm-debug.log*
+Frontend/wypozyczalnia-frontend/lerna-debug.log*
 
-/wypozyczalnia-frontend/node_modules
-/wypozyczalnia-frontend/dist
-/wypozyczalnia-frontend/dist-ssr
-/wypozyczalnia-frontend/*.local
+Frontend/wypozyczalnia-frontend/node_modules
+Frontend/wypozyczalnia-frontend/dist
+Frontend/wypozyczalnia-frontend/dist-ssr
+Frontend/wypozyczalnia-frontend/*.local
 
 # Editor directories and files
 .vscode/*
