@@ -1,5 +1,7 @@
 #Java Backend
-/target
+target/
+out/
+build/
 
 #Frontend
 Frontend/wypozyczalnia-frontend/logs
