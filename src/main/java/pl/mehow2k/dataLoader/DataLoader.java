@@ -7,9 +7,11 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import pl.mehow2k.repositories.MachineRepository;
 import pl.mehow2k.repositories.RoleRepository;
 import pl.mehow2k.repositories.UserRepository;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 /**
@@ -22,7 +24,7 @@ import java.util.List;
 @Component
 public class DataLoader implements ApplicationRunner {
 //    private WypozyczenieRepository wypRepository;
-//    private KsiazkaRepository ksiazkaRepository;
+    private MachineRepository machineRepository;
 //    private CzytelnikRepository czytelnikRepository;
 //    private  MyLogRecordRepository myLogRecordRepository;
     private UserRepository userRepository;
@@ -30,10 +32,10 @@ public class DataLoader implements ApplicationRunner {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    public DataLoader(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder)
+    public DataLoader(UserRepository userRepository, RoleRepository roleRepository,MachineRepository machineRepository , PasswordEncoder passwordEncoder)
     {
 //        this.wypRepository = wypRepository;
-//        this.ksiazkaRepository = ksiazkaRepository;
+        this.machineRepository = machineRepository;
 //        this.czytelnikRepository = czytelnikRepository;
 //        this.myLogRecordRepository=myLogRecordRepository;
         this.userRepository=userRepository;
@@ -67,58 +69,40 @@ public class DataLoader implements ApplicationRunner {
 //
 //            myLogRecordRepository.saveAndFlush(myLogRecord3);
 //
-//// Książki
-//            List<Ksiazka> ksiazki = Arrays.asList(
-//                    new Ksiazka("Władca Pierścieni", "J.R.R. Tolkien", "978-83-7659-394-4"),
-//                    new Ksiazka("Hobbit", "J.R.R. Tolkien", "978-83-7469-613-5"),
-//                    new Ksiazka("Harry Potter i Kamień Filozoficzny", "J.K. Rowling", "978-83-7184-755-4"),
-//                    new Ksiazka("Gra o Tron", "George R.R. Martin", "978-83-7480-197-4"),
-//                    new Ksiazka("Rok 1984", "George Orwell", "978-83-287-1534-0"),
-//                    new Ksiazka("Duma i uprzedzenie", "Jane Austen", "978-83-7885-876-8"),
-//                    new Ksiazka("Zbrodnia i kara", "Fiodor Dostojewski", "978-83-233-3366-1"),
-//                    new Ksiazka("Mistrz i Małgorzata", "Michaił Bułhakow", "978-83-7392-450-1"),
-//                    new Ksiazka("Lalka", "Bolesław Prus", "978-83-7392-460-0"),
-//                    new Ksiazka("Pan Tadeusz", "Adam Mickiewicz", "978-83-7392-470-9"),
-//                    new Ksiazka("Potop", "Henryk Sienkiewicz", "978-83-7392-480-8"),
-//                    new Ksiazka("Quo Vadis", "Henryk Sienkiewicz", "978-83-7392-490-7"),
-//                    new Ksiazka("Krzyżacy", "Henryk Sienkiewicz", "978-83-7392-500-3"),
-//                    new Ksiazka("W pustyni i w puszczy", "Henryk Sienkiewicz", "978-83-7392-510-2"),
-//                    new Ksiazka("Chłopi", "Władysław Reymont", "978-83-7392-520-1"),
-//                    new Ksiazka("Ferdydurke", "Witold Gombrowicz", "978-83-7392-530-0"),
-//                    new Ksiazka("Solaris", "Stanisław Lem", "978-83-7392-540-9"),
-//                    new Ksiazka("Wiedźmin", "Andrzej Sapkowski", "978-83-7392-550-8"),
-//                    new Ksiazka("Mały Książę", "Antoine de Saint-Exupéry", "978-83-7392-560-7"),
-//                    new Ksiazka("Bracia Karamazow", "Fiodor Dostojewski", "978-83-7392-570-6")
-//            );
-//
-//            ksiazki.forEach(ksiazka -> ksiazkaRepository.saveAndFlush(ksiazka));
-//
-//// Czytelnicy
-//            List<Czytelnik> czytelnicy = Arrays.asList(
-//                    new Czytelnik("Adam", "Nowak"),
-//                    new Czytelnik("Anna", "Kowal"),
-//                    new Czytelnik("Ewa", "Wójcik"),
-//                    new Czytelnik("Jan", "Kowalski"),
-//                    new Czytelnik("Piotr", "Wiśniewski"),
-//                    new Czytelnik("Paweł", "Wróbel"),
-//                    new Czytelnik("Marek", "Kozłowski"),
-//                    new Czytelnik("Tomasz", "Jankowski"),
-//                    new Czytelnik("Krzysztof", "Mazur"),
-//                    new Czytelnik("Andrzej", "Lewandowski"),
-//                    new Czytelnik("Michał", "Zieliński"),
-//                    new Czytelnik("Rafał", "Szymański"),
-//                    new Czytelnik("Dariusz", "Wojciechowski"),
-//                    new Czytelnik("Łukasz", "Kwiatkowski"),
-//                    new Czytelnik("Grzegorz", "Krawczyk"),
-//                    new Czytelnik("Marcin", "Kaczmarek"),
-//                    new Czytelnik("Kamil", "Piotrowski"),
-//                    new Czytelnik("Jarosław", "Grabowski"),
-//                    new Czytelnik("Patryk", "Pawlak"),
-//                    new Czytelnik("Dominik", "Dąbrowski")
-//            );
-//
-//            czytelnicy.forEach(czytelnik -> czytelnikRepository.saveAndFlush(czytelnik));
-//
+// Maszyny rolnicze
+            List<Machine> machines = Arrays.asList(
+                    new Machine("John Deere 6R", "Traktory", new BigDecimal("550.00"), true),
+                    new Machine("New Holland T7", "Traktory", new BigDecimal("500.00"), true),
+                    new Machine("Fendt 930 Vario", "Traktory", new BigDecimal("700.00"), true),
+                    new Machine("Claas Axion 850", "Traktory", new BigDecimal("620.00"), true),
+
+                    new Machine("Claas Lexion 8900", "Kombajny", new BigDecimal("1500.00"), true),
+                    new Machine("John Deere X9", "Kombajny", new BigDecimal("1700.00"), true),
+                    new Machine("New Holland CR10.90", "Kombajny", new BigDecimal("1600.00"), false),
+
+                    new Machine("Amazone ZA-TS", "Rozsiewacze", new BigDecimal("250.00"), true),
+                    new Machine("Kuhn Axis", "Rozsiewacze", new BigDecimal("230.00"), true),
+
+                    new Machine("Horsch Pronto 6DC", "Siewniki", new BigDecimal("450.00"), true),
+                    new Machine("Vaderstad Rapid A600S", "Siewniki", new BigDecimal("520.00"), false),
+
+                    new Machine("Kverneland EG", "Pługi", new BigDecimal("180.00"), true),
+                    new Machine("Lemken Diamant 16", "Pługi", new BigDecimal("220.00"), true),
+
+                    new Machine("Pottinger Novacat", "Kosiarki", new BigDecimal("300.00"), true),
+                    new Machine("Krone EasyCut", "Kosiarki", new BigDecimal("320.00"), true),
+
+                    new Machine("Manitou MLT 741", "Ładowarki", new BigDecimal("400.00"), true),
+                    new Machine("JCB 541-70", "Ładowarki", new BigDecimal("420.00"), false),
+
+                    new Machine("John Deere 8RX", "Traktory", new BigDecimal("900.00"), true),
+                    new Machine("Case IH Magnum", "Traktory", new BigDecimal("850.00"), true),
+                    new Machine("Deutz-Fahr 7250 TTV", "Traktory", new BigDecimal("680.00"), true)
+            );
+
+            machines.forEach(machine -> machineRepository.saveAndFlush(machine));
+
+
 //// Wypożyczenia
 //            List<Wypozyczenie> wypozyczenia = Arrays.asList(
 //                    new Wypozyczenie("01-01-2024"),
@@ -169,46 +153,49 @@ public class DataLoader implements ApplicationRunner {
 
             ///USERS' initialize
             Role adminRole = new Role();
-            adminRole.setName("ADMIN");
+            adminRole.setName("ROLE_ADMIN");
             roleRepository.save(adminRole);
 
             Role staffRole = new Role();
-            staffRole.setName("STAFF");
+            staffRole.setName("ROLE_STAFF");
             roleRepository.save(staffRole);
 
             Role clientRole = new Role();
-            clientRole.setName("CLIENT");
+            clientRole.setName("ROLE_CLIENT");
             roleRepository.save(clientRole);
 
             //----------------
-
-            User admin = new User();
-            admin.setUsername("admin");
-            admin.setPassword(passwordEncoder.encode("admin123"));
-            admin.getRoles().add(adminRole);
-            admin.getRoles().add(clientRole);
-            userRepository.save(admin);
-
-            User staff = new User();
-            staff.setUsername("staff");
-            staff.setPassword(passwordEncoder.encode("staff123"));
-            staff.getRoles().add(staffRole);
-            userRepository.save(staff);
-
-            User client = new User();
-            client.setUsername("client");
-            client.setPassword(passwordEncoder.encode("client123"));
-            client.getRoles().add(clientRole);
-            userRepository.save(client);
-
-            User pasieka = new User();
-            pasieka.setUsername("pasieka");
-            pasieka.setPassword(passwordEncoder.encode("pasieka123"));
-            pasieka.getRoles().add(adminRole);
-            pasieka.getRoles().add(clientRole);
-            pasieka.getRoles().add(staffRole);
-            userRepository.save(pasieka);
-
+            if (userRepository.findByUsername("admin").isEmpty()) {
+                User admin = new User();
+                admin.setUsername("admin");
+                admin.setPassword(passwordEncoder.encode("admin123"));
+                admin.getRoles().add(adminRole);
+                admin.getRoles().add(clientRole);
+                userRepository.save(admin);
+            }
+            if (userRepository.findByUsername("staff").isEmpty()) {
+                User staff = new User();
+                staff.setUsername("staff");
+                staff.setPassword(passwordEncoder.encode("staff123"));
+                staff.getRoles().add(staffRole);
+                userRepository.save(staff);
+            }
+            if (userRepository.findByUsername("client").isEmpty()) {
+                User client = new User();
+                client.setUsername("client");
+                client.setPassword(passwordEncoder.encode("client123"));
+                client.getRoles().add(clientRole);
+                userRepository.save(client);
+            }
+            if (userRepository.findByUsername("pasieka").isEmpty()) {
+                User pasieka = new User();
+                pasieka.setUsername("pasieka");
+                pasieka.setPassword(passwordEncoder.encode("pasieka123"));
+                pasieka.getRoles().add(adminRole);
+                pasieka.getRoles().add(clientRole);
+                pasieka.getRoles().add(staffRole);
+                userRepository.save(pasieka);
+            }
 
         }
         catch (Exception e)

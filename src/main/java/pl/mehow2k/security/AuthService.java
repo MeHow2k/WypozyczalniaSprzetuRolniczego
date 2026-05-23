@@ -42,14 +42,12 @@ public class AuthService {
 
         // BEZPIECZEŃSTWO: Hashowanie hasła za pomocą BCrypt przed zapisem do bazy
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        //map string na Role
-        Set<Role> userRoles = new java.util.HashSet<>();
-        for (String roleName : registerRequest.getRoles()) {
-            Role role = roleRepository.findByName(roleName)
-                    .orElseThrow(() -> new RuntimeException("Error: Nie znaleziono roli " + roleName + " w bazie. Upewnij się, że tabele są zainicjalizowane!"));
-            userRoles.add(role);
-        }
-        user.setRoles(userRoles);
+
+        // przypisanie domyślnej roli CLIENT
+        Role clientRole = roleRepository.findByName("CLIENT")
+                .orElseThrow(() -> new RuntimeException("Error: Rola CLIENT nie istnieje w bazie!"));
+
+        user.setRoles(Set.of(clientRole));
 
         userRepository.save(user);
         return "Użytkownik zarejestrowany pomyślnie!";
