@@ -5,7 +5,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user } = useAuth();
 
     // Sprawdzanie czy użytkownik jest w ogóle zalogowany
-    if (!user && localStorage.getItem('token') === null) {
+    if (!user && localStorage.getItem('roles') === null) {
         return <Navigate to="/" replace />;
     }
 

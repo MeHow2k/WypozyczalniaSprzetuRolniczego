@@ -8,6 +8,11 @@ export const AdminPanel = () => {
     const [error, setError] = useState('');
     const [users, setUsers] = useState([]);
     const [machines, setMachines] = useState([]);
+
+    const [UserId, setUserId] = useState("");
+    const [userRole, setUserRole] = useState("");
+    const [UserIdtoDeleteRole, setUserIdtoDeleteRole] = useState("");
+    const [userRoletoDeleteRole, setUserRoletoDeleteRole] = useState("");
     
     // Nowy stan określający, co aktualnie wyświetlamy: 'users', 'machines' lub 'none'
     const [activeView, setActiveView] = useState('none'); 
@@ -42,6 +47,58 @@ export const AdminPanel = () => {
             });
     };
 
+       // Funkcja obslugujaca przyznawanie ról
+    const handleSubmitRole = async (e) => {
+        e.preventDefault();
+            if (!UserId || UserId=="") {
+                setError("Proszę wpisać ID użytkownika!");
+                return;
+            }
+            if (!userRole || userRole=="") {
+                setError("Proszę wybrać rolę z listy!");
+                return;
+            }
+
+        try {
+            // Wysyłamy PUT na adres: /api/admin/addrole/{id}
+            // Ciasteczko z tokenem JWT zostanie dołączone automatycznie dzięki 'withCredentials: true' w axios.js
+            const response = await api.put(`/admin/addrole/${UserId}`, {
+                roleName: userRole // To pole trafia do RoleAssignRequest na backendzie
+            });
+            setError(response.data); // Wyświetli komunikat ze Springa, np. "Pomyślnie nadano rolę..."
+            setUserId('');
+            setRole('');
+        } catch (err) {    
+            const errorMessage = err.response?.data || "Wystąpił nieoczekiwany błąd serwera.";
+            setError("Błąd podczas nadawania roli: " + errorMessage);
+        }
+    };
+
+     // Funkcja obslugujaca odbieranie ról
+    const handleSubmitRoleDelete = async (e) => {
+        e.preventDefault();
+            if (!UserIdtoDeleteRole || UserIdtoDeleteRole=="") {
+                setError("Proszę wpisać ID użytkownika!");
+                return;
+            }
+            if (!userRoletoDeleteRole || userRoletoDeleteRole=="") {
+                setError("Proszę wybrać rolę z listy!");
+                return;
+            }
+
+        try {
+            const response = await api.put(`/admin/deleterole/${UserIdtoDeleteRole}`, {
+                roleName: userRoletoDeleteRole // To pole trafia do RoleDeleteRequest na backendzie
+            });
+            setError(response.data); 
+            setUserIdtoDeleteRole('');
+            setUserRoletoDeleteRole('');
+        } catch (err) {    
+            const errorMessage = err.response?.data || "Wystąpił nieoczekiwany błąd serwera.";
+            setError("Błąd podczas nadawania roli: " + errorMessage);
+        }
+    };
+
     return (
         <div className="admin-container">
             <Navbar />
@@ -55,7 +112,7 @@ export const AdminPanel = () => {
                     className={`admin-btn ${activeView === 'users' ? 'active' : ''}`}
                     onClick={fetchUsers}
                 >
-                    👥 Wyświetl Użytkowników
+                    👥 Użytkownicy i role
                 </button>
                 <button 
                     className={`admin-btn ${activeView === 'machines' ? 'active' : ''}`}
@@ -70,7 +127,48 @@ export const AdminPanel = () => {
             {/* TABELA: UŻYTKOWNICY */}
             {activeView === 'users' && (
                 <div>
-                    <h3>Zarejestrowani Użytkownicy w Systemie:</h3>
+                    <div>
+                        <form onSubmit={handleSubmitRole}>
+                                <label> ID </label>  <input type="text" name='userid' value={UserId} onChange={(e) => setUserId(e.target.value)} />  
+                                <label> Rola </label>  
+                                 <select 
+                                    name='userRole' 
+                                    value={userRole} 
+                                    onChange={(e) => setUserRole(e.target.value)}
+                                    style={{ padding: '5px', minWidth: '150px', marginBottom: '10px' }}
+                                >
+                                    {/* Opcja domyślna */}
+                                    <option value="" disabled>-- Wybierz rolę --</option>
+                                    {/* Opcje odpowiadające nazwom ról w bazie danych  */}
+                                    <option value="ROLE_USER">Klient </option>
+                                    <option value="ROLE_STAFF">Pracownik</option>
+                                    <option value="ROLE_ADMIN">Administrator</option>
+                                </select>                               
+                                <button type="submit" > Przyznaj rolę </button><p></p>                                                 
+                            </form>
+                    </div>
+                    <div>
+                        <form onSubmit={handleSubmitRoleDelete}>
+                                <label> ID </label>  <input type="text" name='useridtoDeleteRole' value={UserIdtoDeleteRole} onChange={(e) => setUserIdtoDeleteRole(e.target.value)} />  
+                                <label> Rola </label>  
+                                 <select 
+                                    name='userRoletoDeleteRole' 
+                                    value={userRoletoDeleteRole} 
+                                    onChange={(e) => setUserRoletoDeleteRole(e.target.value)}
+                                    style={{ padding: '5px', minWidth: '150px', marginBottom: '10px' }}
+                                >
+                                    {/* Opcja domyślna */}
+                                    <option value="" disabled>-- Wybierz rolę --</option>
+                                    {/* Opcje odpowiadające nazwom ról w bazie danych  */}
+                                    <option value="ROLE_USER">Klient </option>
+                                    <option value="ROLE_STAFF">Pracownik</option>
+                                   
+                                </select>                               
+                                <button type="submit" > Odbierz rolę </button><p></p>                                                 
+                            </form>
+                    </div>
+
+                    <h3>Użytkownicy w Systemie:</h3>
                     <table className="admin-table">
                         <thead>
                             <tr>

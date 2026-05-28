@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import api from '../api/axios';
 
 const AuthContext = createContext(null);
 
@@ -22,10 +23,15 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('username', userData.username);
     };
 
-    const logout = () => {
-        setUser(null);
-        localStorage.clear();
-    };
+    const logout = async () => {
+    try {
+        await api.post('/auth/logout'); // Czyści ciastko po stronie serwera
+    } catch (err) {
+        console.error(err);
+    }
+    setUser(null);
+    localStorage.clear();
+};
 
     return (
         <AuthContext.Provider value={{ user, login, logout }}>
