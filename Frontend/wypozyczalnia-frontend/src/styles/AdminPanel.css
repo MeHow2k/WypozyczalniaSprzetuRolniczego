@@ -1,0 +1,80 @@
+.admin-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.admin-error-msg {
+    color: red;
+    font-weight: bold;
+}
+
+.admin-menu-box {
+    margin-bottom: 25px;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+/* Uniwersalny styl dla przycisków w panelu */
+.admin-btn {
+    padding: 10px 15px;
+    margin-right: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    color: #000;
+    transition: all 0.2s ease;
+}
+
+/* Klasy aktywne dla zakładek menu */
+.admin-btn.active {
+    background-color: #4CAF50;
+    color: #fff;
+    border-color: #4CAF50;
+}
+
+.admin-btn-back {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+}
+
+/* Style dla tabel relacyjnych */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    margin-bottom: 25px;
+}
+
+.admin-table th, 
+.admin-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.admin-table th {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.admin-table code {
+    background-color: #f4f4f4;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+.admin-info-placeholder {
+    color: #666;
+    font-style: italic;
+}
+
+.admin-hr {
+    margin: 20px 0;
+    border: 0;
+    border-top: 1px solid #eee;
+}

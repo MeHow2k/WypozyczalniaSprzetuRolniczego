@@ -6,7 +6,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
 
     // Sprawdzanie czy użytkownik jest w ogóle zalogowany
     if (!user && localStorage.getItem('token') === null) {
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/" replace />;
     }
 
     // Sprawdzanie czy rola pasuje

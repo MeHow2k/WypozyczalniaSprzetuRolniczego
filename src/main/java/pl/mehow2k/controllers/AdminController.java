@@ -18,7 +18,7 @@ public class AdminController {
 
     // Endpoint sterowany rolą ADMIN
     @GetMapping("/users")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }

@@ -1,0 +1,42 @@
+.navbar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #63d37f;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.navbar-brand-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.navbar-home-btn {
+    padding: 5px 10px;
+    cursor: pointer;
+    background-color: #76cde2;
+    border: 1px solid #151616;
+    border-radius: 3px;
+}
+
+.navbar-user-section {
+    margin-left: auto;
+}
+
+.navbar-logged-in-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.navbar-logout-btn {
+    padding: 6px 12px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}

@@ -1,0 +1,151 @@
+.home-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.home-alert-box {
+    color: #721c24;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.home-alert-box.success {
+    color: #155724;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+}
+
+.home-role-menu {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #e2f0d9;
+    border-radius: 5px;
+}
+
+.home-actions-row {
+    display: flex;
+    gap: 10px;
+}
+
+.home-btn-action {
+    padding: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: #d19393;
+}
+
+.home-btn-staff {
+    background-color: #ffc107;
+    border: none;
+    color: #000;
+}
+
+.home-btn-admin {
+    background-color: #007bff;
+    color: white;
+    border: none;
+}
+
+.home-weather-quote {
+    margin-top: 10px;
+    background-color: #fafafa;
+    padding: 10px;
+    border-left: 5px solid #28a745;
+}
+
+/* Formularz uwierzytelniania */
+.home-auth-card {
+    border: 1px solid #ccc;
+    padding: 20px;
+    max-width: 350px;
+    margin-top: 20px;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+.home-auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.home-auth-input {
+    width: 90%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.home-auth-submit-btn {
+    width: 96%;
+    padding: 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+.home-auth-toggle-text {
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.home-auth-toggle-link {
+    color: blue;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.home-divider {
+    margin: 30px 0;
+    border: 0;
+    border-top: 1px solid #eee;
+}
+
+.home-machines-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.home-machine-card {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 5px;
+    width: 220px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    background-color: #fce8e8;
+    color: #000;
+}
+
+.home-machine-category {
+    color: #666;
+}
+
+.home-status-free {
+    color: green;
+    font-weight: bold;
+}
+
+.home-status-busy {
+    color: red;
+    font-weight: bold;
+}
+
+.home-btn-reserve {
+    width: 100%;
+    padding: 8px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}

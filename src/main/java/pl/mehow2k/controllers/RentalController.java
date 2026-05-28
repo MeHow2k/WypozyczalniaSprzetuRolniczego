@@ -89,15 +89,15 @@ import java.util.List;
 //        // 5. ZEWNĘTRZNE API (Zabezpieczone kluczem na backendzie)
 //        // Użytkownik pyta naszą aplikację, czy pogoda pozwala na pracę w polu.
 //        // Nasz backend podczepia pod to ukryty klucz i odpytuje zewnętrzne API.
-//        @GetMapping("/weather-check")
-//        @PreAuthorize("hasAnyRole('USER', 'EMPLOYEE', 'ADMIN')")
-//        public ResponseEntity<String> checkWeatherForHarvest() {
-//            // W prawdziwym projekcie użyłbyś tu RestTemplate lub WebClient do wykonania żądania HTTP:
-//            // String url = "https://api.openweathermap.org/data/2.5/weather?q=Warsaw&appid=" + weatherApiKey;
-//
-//            // Na potrzeby projektu zwracamy symulację, która dowodzi bezpiecznego użycia klucza na backendzie
-//            return ResponseEntity.ok("Autoryzacja zewnętrznego API powiodła się. [Użyty klucz na backendzie: " + weatherApiKey.substring(0, 4) + "****]. Pogoda sprzyja zbiorom.");
-//        }
+        @GetMapping("/weather-check")
+        @PreAuthorize("hasAnyRole('CLIENT', 'STAFF', 'ADMIN')")
+        public ResponseEntity<String> checkWeatherForHarvest() {
+            // W prawdziwym projekcie użyłbyś tu RestTemplate lub WebClient do wykonania żądania HTTP:
+            // String url = "https://api.openweathermap.org/data/2.5/weather?q=Warsaw&appid=" + weatherApiKey;
+
+            // Na potrzeby projektu zwracamy symulację, która dowodzi bezpiecznego użycia klucza na backendzie
+            return ResponseEntity.ok("Autoryzacja zewnętrznego API powiodła się. Pogoda sprzyja zbiorom.");
+        }
     }
 
 
