@@ -25,7 +25,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private JWTTokenProvider tokenProvider;
 
-    @Autowired // POPRAWKA 1: Brakowało adnotacji, przez co UserRepository byłoby nullem (NullPointerException)
+    @Autowired
     private UserRepository userRepository;
 
     @Override

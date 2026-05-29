@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '../components/NavBar';
-import '../styles/AdminPanel.css';
+import '../styles/Panels.css';
 
 export const AdminPanel = () => {
     const [error, setError] = useState('');
@@ -13,6 +13,12 @@ export const AdminPanel = () => {
     const [userRole, setUserRole] = useState("");
     const [UserIdtoDeleteRole, setUserIdtoDeleteRole] = useState("");
     const [userRoletoDeleteRole, setUserRoletoDeleteRole] = useState("");
+
+    const [machineName, setMachineName] = useState("");
+    const [machineCategory, setMachineCategory] = useState("");
+    const [machinePrice, setMachinePrice] = useState("");
+
+    const [machineIdToDelete, setMachineIdToDelete] = useState("");
     
     // Nowy stan określający, co aktualnie wyświetlamy: 'users', 'machines' lub 'none'
     const [activeView, setActiveView] = useState('none'); 
@@ -62,7 +68,7 @@ export const AdminPanel = () => {
         try {
             // Wysyłamy PUT na adres: /api/admin/addrole/{id}
             // Ciasteczko z tokenem JWT zostanie dołączone automatycznie dzięki 'withCredentials: true' w axios.js
-            const response = await api.put(`/admin/addrole/${UserId}`, {
+            const response = await api.put(`/admin/users/addrole/${UserId}`, {
                 roleName: userRole // To pole trafia do RoleAssignRequest na backendzie
             });
             setError(response.data); // Wyświetli komunikat ze Springa, np. "Pomyślnie nadano rolę..."
@@ -87,7 +93,7 @@ export const AdminPanel = () => {
             }
 
         try {
-            const response = await api.put(`/admin/deleterole/${UserIdtoDeleteRole}`, {
+            const response = await api.put(`/admin/users/deleterole/${UserIdtoDeleteRole}`, {
                 roleName: userRoletoDeleteRole // To pole trafia do RoleDeleteRequest na backendzie
             });
             setError(response.data); 
@@ -99,12 +105,57 @@ export const AdminPanel = () => {
         }
     };
 
+    const handleSubmitMachineToDelete = async (e) => {
+        e.preventDefault();
+            if (!machineIdToDelete || machineIdToDelete=="") {
+                setError("Proszę wpisać ID maszyny do usunięcia!");
+                return;
+            }
+            
+        const confirmDelete = window.confirm(`Czy na pewno chcesz usunąć maszynę o ID: ${machineIdToDelete}?`);
+        if (!confirmDelete) return;
+
+        try {
+            const response = await api.delete(`/admin/machines/deletemachine/${machineIdToDelete}`);
+            setError(response.data); 
+            setMachineIdToDelete('');            
+        } catch (err) {    
+            const errorMessage = err.response?.data || "Wystąpił nieoczekiwany błąd serwera.";
+            setError("Błąd usuwania maszyny: " + errorMessage);
+        }
+    };
+
+    const handleSubmitAddMachine = async (e) => {
+        e.preventDefault();
+    if (!machineName || !machinePrice) {
+            setError("Proszę uzupełnić nazwę i cenę maszyny!");
+            return;
+        }
+
+        try {
+            const response = await api.post('/admin/machines/addmachine', {
+                name: machineName,
+                category: machineCategory,
+                pricePerDay: parseFloat(machinePrice) // Konwersja tekstu na liczbę zmiennoprzecinkową
+            });
+
+            setError(response.data);
+            
+            setMachineName('');
+            setMachinePrice('');
+            setMachineCategory('');
+        } catch (err) {
+            const errorMessage = err.response?.data || "Wystąpił nieoczekiwany błąd serwera.";
+            setError("Błąd podczas dodawania maszyny: " + errorMessage);
+        }
+    };
+
     return (
         <div className="admin-container">
             <Navbar />
             
             <h2>⚙️ Panel Zarządzania Administratora</h2>
-            <p className="admin-error-msg">{error}</p>
+            
             
             {/* PRZYCISKI NAWIGACYJNE ADMINA */}
             <div className="admin-menu-box">
@@ -123,6 +174,7 @@ export const AdminPanel = () => {
 
                 
             </div>
+            <p className="admin-error-msg">{error}</p>
 
             {/* TABELA: UŻYTKOWNICY */}
             {activeView === 'users' && (
@@ -193,6 +245,41 @@ export const AdminPanel = () => {
             {/* TABELA: MASZYNY */}
             {activeView === 'machines' && (
                 <div>
+
+                    <div>
+                        <form onSubmit={handleSubmitAddMachine}>
+                                <label> Nazwa </label>  <input type="text" name='machineName' value={machineName} onChange={(e) => setMachineName(e.target.value)} />  
+                                <label> Kategoria </label>  
+                                 <select 
+                                    name='machineCategory' 
+                                    value={machineCategory} 
+                                    onChange={(e) => setMachineCategory(e.target.value)}
+                                    style={{ padding: '5px', minWidth: '150px', marginBottom: '10px' }}
+                                >
+                                    {/* Opcja domyślna */}
+                                    <option value="" disabled>-- Wybierz kategorię --</option>
+                                    {/* Opcje odpowiadające kategoriom  */}
+                                    <option value="Traktory">Traktory </option>
+                                    <option value="Kombajny">Kombajny</option>
+                                    <option value="Rozsiewacze">Rozsiewacze</option>
+                                    <option value="Siewniki">Siewniki</option>
+                                    <option value="Pługi">Pługi</option>
+                                    <option value="Kosiarki">Kosiarki</option>
+                                    <option value="Ładowarki">Ładowarki</option>
+                                </select> 
+                                <label> Cena (doba) </label>  <input type="text" name='machineprice' value={machinePrice} onChange={(e) => setMachinePrice(e.target.value)} />                                
+                                <button type="submit" > Dodaj </button><p></p>                                                 
+                            </form>
+                    </div>
+                    <div>
+                        <form onSubmit={handleSubmitMachineToDelete}>
+                                <label> ID </label>  
+                                <input type="text" name='machineidtoDelete' value={machineIdToDelete} onChange={(e) => setMachineIdToDelete(e.target.value)} />                                                            
+                                <button type="submit" > Usuń maszynę </button><p></p>                                                 
+                            </form>
+                    </div>
+
+
                     <h3>Stan floty maszyn rolniczych:</h3>
                     <table className="admin-table">
                         <thead>

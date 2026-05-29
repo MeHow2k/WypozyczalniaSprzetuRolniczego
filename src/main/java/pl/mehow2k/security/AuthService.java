@@ -30,7 +30,7 @@ public class AuthService {
     @Autowired
     private JWTTokenProvider tokenProvider;
 
-    // 1. REJESTRACJA NOWEGO UŻYTKOWNIKA
+    // REJESTRACJA NOWEGO UŻYTKOWNIKA
     public String registerUser(RegisterRequest registerRequest) {
         // Sprawdzenie, czy email jest już zajęty (Ochrona przed duplikatami)
         if (userRepository.findByUsername(registerRequest.getUsername()).isPresent()) {
@@ -40,7 +40,7 @@ public class AuthService {
         User user = new User();
         user.setUsername(registerRequest.getUsername());
 
-        // BEZPIECZEŃSTWO: Hashowanie hasła za pomocą BCrypt przed zapisem do bazy
+        // Hashowanie hasła za pomocą BCrypt przed zapisem do bazy
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
 
         // przypisanie domyślnej roli CLIENT
