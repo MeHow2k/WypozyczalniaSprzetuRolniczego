@@ -136,7 +136,7 @@ export const AdminPanel = () => {
             const response = await api.post('/admin/machines/addmachine', {
                 name: machineName,
                 category: machineCategory,
-                pricePerDay: parseFloat(machinePrice) // Konwersja tekstu na liczbę zmiennoprzecinkową
+                pricePerDay: parseFloat(machinePrice) // Konwersja na flaoat
             });
 
             setError(response.data);

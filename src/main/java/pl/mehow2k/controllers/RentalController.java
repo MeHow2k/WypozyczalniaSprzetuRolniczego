@@ -9,11 +9,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import pl.mehow2k.models.Machine;
 import pl.mehow2k.models.Reservation;
+import pl.mehow2k.models.ReservationStatus;
 import pl.mehow2k.models.User;
 import pl.mehow2k.repositories.MachineRepository;
 import pl.mehow2k.repositories.ReservationRepository;
 import pl.mehow2k.repositories.UserRepository;
 import pl.mehow2k.transfers.ReservationRequest;
+import pl.mehow2k.transfers.ReservationStatusRequest;
 
 import java.util.List;
 
@@ -44,9 +46,10 @@ import java.util.List;
         @PostMapping("/reserve")
         @PreAuthorize("hasRole('CLIENT')")
         public ResponseEntity<?> reserveMachine(@RequestBody ReservationRequest request) {
-            // Pobieramy login aktualnie zalogowanego użytkownika z kontekstu bezpieczeństwa JWT
+            // Pobieramy login aktualnie zalogowanego użytkownika z cookie
             String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-            User user = userRepository.findByUsername(currentUsername).orElseThrow();
+            User user = userRepository.findByUsername(currentUsername)
+                    .orElseThrow(() -> new RuntimeException("Nie znaleziono zalogowanego użytkownika."));
 
             Machine machine = machineRepository.findById(request.getMachineId())
                     .orElseThrow(() -> new RuntimeException("Nie znaleziono maszyny"));
@@ -55,28 +58,60 @@ import java.util.List;
                 return ResponseEntity.badRequest().body("Ta maszyna jest aktualnie niedostępna.");
             }
 
+            if (request.getStartDate().isAfter(request.getEndDate())) {
+                return ResponseEntity.badRequest().body("Data rozpoczęcia nie może być późniejsza niż data zakończenia.");
+            }
+
             Reservation reservation = new Reservation();
             reservation.setUser(user);
             reservation.setMachine(machine);
             reservation.setStartDate(request.getStartDate());
             reservation.setEndDate(request.getEndDate());
-            reservation.setStatus("PENDING");
+            reservation.setStatus(ReservationStatus.PENDING);
 
             reservationRepository.save(reservation);
-            return ResponseEntity.ok("Rezerwacja została złożona i oczekuje na weryfikację pracownika.");
+            return ResponseEntity.ok("Rezerwacja " + machine.getName() + " została złożona i oczekuje na weryfikację pracownika.");
         }
 
-        // Akceptacja rezerwacji prez pracownika (zarządzanie statusem)
-        @PutMapping("/staff/approve/{id}")
+        @GetMapping("/reservations")
+        @PreAuthorize("hasRole('STAFF') or hasRole('ADMIN')")
+        public ResponseEntity<List<Reservation>> getAllReservations() {
+            return ResponseEntity.ok(reservationRepository.findAll());
+        }
+
+        @PutMapping("/updatestatus/{id}")
         @PreAuthorize("hasRole('STAFF')")
-        public ResponseEntity<?> approveReservation(@PathVariable Long id) {
-            Reservation reservation = reservationRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Nie znaleziono rezerwacji"));
+        public ResponseEntity<?> updateReservationStatus(@PathVariable Long id, @RequestBody ReservationStatusRequest request) {
 
-            reservation.setStatus("APPROVED");
+            // Walidacja czy DTO nie jest puste
+            if (request.getStatus() == null) {
+                return ResponseEntity.badRequest().body("Error: Status rezerwacji nie może być pusty!");
+            }
+
+            Reservation reservation = reservationRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Nie znaleziono rezerwacji."));
+
+            // Zmieniamy status (np. na APPROVED lub REJECTED)
+            reservation.setStatus(request.getStatus());
+
+            if (request.getStatus() == ReservationStatus.APPROVED) {
+                Machine machine = reservation.getMachine();
+                machine.setAvailable(false);
+                machineRepository.save(machine);
+            }
+
+            // Jeśli zamówienie zostało sfinalizowane lub odrzucone maszyna znowu dostepna
+
+            if (request.getStatus() == ReservationStatus.COMPLETED || request.getStatus() == ReservationStatus.REJECTED) {
+                Machine machine = reservation.getMachine();
+                machine.setAvailable(true);
+                machineRepository.save(machine);
+            }
+
             reservationRepository.save(reservation);
-            return ResponseEntity.ok("Rezerwacja zaakceptowana pomyślnie.");
+            return ResponseEntity.ok("Zmieniono status rezerwacji o id: "+id+" na: " + request.getStatus());
         }
+
 
         // Dodawanie nowego sprzętu - admin
         @PostMapping("/admin/machines")

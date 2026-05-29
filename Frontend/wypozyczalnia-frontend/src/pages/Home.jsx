@@ -65,6 +65,27 @@ export const Home = () => {
         }
     };
 
+
+    const handleReserveMachine = async (machineId) => {
+    try {
+        // Symulujemy rezerwację od dzisiaj na kolejne 3 dni (w pełnej wersji można dać kalendarz <input type="date">)
+        const today = new Date().toISOString().split('T')[0];
+        const nextWeek = new Date();
+        nextWeek.setDate(nextWeek.getDate() + 3);
+        const endDate = nextWeek.toISOString().split('T')[0];
+
+        const response = await api.post('/rental/reserve', {
+            machineId: machineId,
+            startDate: today,
+            endDate: endDate
+        });
+
+        setAlert(response.data); 
+    } catch (err) {
+        setAlert("Błąd rezerwacji: " + (err.response?.data || "Brak autoryzacji"));
+    }
+};
+
     // Odpytywanie zewnętrznego API przez bezpieczny backend
     const checkWeather = async () => {
         try {
@@ -140,8 +161,8 @@ export const Home = () => {
                             ) : (
                                 <span className="home-status-busy">🔴 Niedostępny</span>
                             )}</p>
-                        {user && user.roles.includes('ROLE_USER') && m.available && (
-                            <button className="home-btn-reserve">Zarezerwuj</button>
+                        {user && user.roles.includes("ROLE_CLIENT") && m.available && (
+                            <button className="home-btn-reserve" onClick={() => handleReserveMachine(m.id)}>Zarezerwuj</button>
                         )}
                     </div>
                 ))}

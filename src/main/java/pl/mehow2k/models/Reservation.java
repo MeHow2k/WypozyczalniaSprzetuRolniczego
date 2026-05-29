@@ -26,8 +26,9 @@ public class Reservation {
     private LocalDate endDate;
 
     // Statusy: PENDING (oczekuje), APPROVED (zatwierdzona przez pracownika), REJECTED, COMPLETED
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status = "PENDING";
+    private ReservationStatus status = ReservationStatus.PENDING;
 
     // Gettery i Settery
     public Long getId() { return id; }
@@ -40,6 +41,6 @@ public class Reservation {
     public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
     public LocalDate getEndDate() { return endDate; }
     public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public ReservationStatus getStatus() { return status; }
+    public void setStatus(ReservationStatus status) { this.status = status; }
 }
