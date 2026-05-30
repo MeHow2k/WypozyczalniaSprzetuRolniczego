@@ -1,5 +1,6 @@
 package pl.mehow2k.controllers;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpHeaders;
@@ -31,7 +32,7 @@ public class AuthController {
 
     // Endpoint rejestracji (Dostępny dla każdego)
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
         try {
             String result = authService.registerUser(registerRequest);
             return ResponseEntity.ok(result);
@@ -48,8 +49,8 @@ public class AuthController {
 
             ResponseCookie jwtCookie = ResponseCookie.from("jwtToken", jwt)
                     .path("/api")           // Ciasteczko będzie wysyłane tylko do endpointów zaczynających się od /api
-                    .maxAge(24 * 60 * 60)   // Czas życia: 24 godziny (zgodnie z tokenem)
-                    .httpOnly(true)         // KLUCZOWE: JS nie ma dostępu do ciasteczka (Ochrona przed XSS!)
+                    .maxAge(24 * 60 * 60)   // Czas życia: 24 godziny
+                    .httpOnly(true)         // JS nie ma dostępu do ciasteczka (Ochrona przed XSS)
                     .secure(false)          // W produkcji dajemy TRUE (wymaga HTTPS). Na localhost zostawiamy false.
                     .sameSite("Lax")        // Ochrona przed CSRF potem na STRICT!!
                     .build();

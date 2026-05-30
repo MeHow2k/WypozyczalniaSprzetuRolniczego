@@ -10,9 +10,7 @@ export const Home = () => {
     const navigate = useNavigate();
     const [alert, setAlert] = useState('');
 
-    // Stany dla danych biznesowych
     const [machines, setMachines] = useState([]);
-    const [weather, setWeather] = useState('');//TODO
 
     // Stany dla formularza
     const [showAuthForm, setShowAuthForm] = useState(false);
@@ -20,8 +18,6 @@ export const Home = () => {
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-
-
 
     // Pobieranie maszyn (zawsze publiczne)
     useEffect(() => {
@@ -86,16 +82,6 @@ export const Home = () => {
     }
 };
 
-    // Odpytywanie zewnętrznego API przez bezpieczny backend
-    const checkWeather = async () => {
-        try {
-            const res = await api.get('/rental/weather-check');
-            setWeather(res.data);
-        } catch (err) {
-            setWeather("Błąd pobierania danych pogodowych.");
-        }
-    };
-
     return (
         <div className="home-container">
             <Navbar/>
@@ -122,7 +108,7 @@ export const Home = () => {
                             </button>
                         )}
                     </div>
-                    {weather && <blockquote className="home-weather-quote">{weather}</blockquote>}
+                   
                 </div>
             )}
 

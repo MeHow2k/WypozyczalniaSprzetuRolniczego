@@ -63,7 +63,11 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <!-- 8. Dodatek do SpringBoot do walidacji  -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
         <!-- Biblioteka do generowania i walidacji tokenów JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
