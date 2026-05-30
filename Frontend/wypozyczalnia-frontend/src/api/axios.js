@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:8080/api', // Adres Spring Boota
+    baseURL: 'https://localhost:8443/api', // Adres Spring Boota
     withCredentials: true
 });
 

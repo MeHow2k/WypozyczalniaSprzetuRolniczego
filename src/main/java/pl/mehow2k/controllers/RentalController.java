@@ -194,7 +194,7 @@ import java.util.stream.Collectors;
                 return ResponseEntity.badRequest().body("Nie znaleziono podanej miejscowości w Polsce. Sprawdź literówki.");
             }
 
-            // OpenRouteService w geocodingu zwraca tablicę: [longitude, latitude]
+            // OpenRouteService w geocode zwraca tablicę: [longitude, latitude]
             clientLon = coordinatesNode.get(0).asDouble();
             clientLat = coordinatesNode.get(1).asDouble();
 
