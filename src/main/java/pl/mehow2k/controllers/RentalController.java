@@ -16,10 +16,12 @@ import pl.mehow2k.repositories.ReservationRepository;
 import pl.mehow2k.repositories.UserRepository;
 import pl.mehow2k.transfers.ReservationRequest;
 import pl.mehow2k.transfers.ReservationStatusRequest;
+import pl.mehow2k.transfers.UserReservationResponse;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-    @RestController
+@RestController
     @RequestMapping("/api/rental")
     public class RentalController {
 
@@ -71,6 +73,35 @@ import java.util.List;
 
             reservationRepository.save(reservation);
             return ResponseEntity.ok("Rezerwacja " + machine.getName() + " została złożona i oczekuje na weryfikację pracownika.");
+        }
+
+        @GetMapping("/my-reservations")
+        @PreAuthorize("hasRole('CLIENT')")
+        public ResponseEntity<List<UserReservationResponse>> getUserReservations() {
+
+            // pobieramy username
+            String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            // szukamy usera w bazie
+            User user = userRepository.findByUsername(currentUsername)
+                    .orElseThrow(() -> new RuntimeException("Error: Nie znaleziono zalogowanego użytkownika."));
+
+            // szukanie rezerwacji dla id usera
+            List<Reservation> reservations = reservationRepository.findByUserId(user.getId());
+
+            // Mapowanie na DTO
+            List<UserReservationResponse> responseList = reservations.stream()
+                    .map(r -> new UserReservationResponse(
+                            r.getId(),
+                            r.getMachine() != null ? r.getMachine().getName() : "Usunięta maszyna",
+                            r.getMachine() != null ? r.getMachine().getCategory() : "Brak",
+                            r.getStartDate(),
+                            r.getEndDate(),
+                            r.getStatus()
+                    ))
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(responseList);
         }
 
         @GetMapping("/reservations")

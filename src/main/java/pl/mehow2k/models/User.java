@@ -1,5 +1,6 @@
 package pl.mehow2k.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -14,7 +15,7 @@ public class User {
     private Long id;
 
     @Column(unique = true, nullable = false)
-    private String username; // U nas to będzie adres email
+    private String username;
 
     @Column(nullable = false)
     private String password;

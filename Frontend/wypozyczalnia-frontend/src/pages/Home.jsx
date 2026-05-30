@@ -103,12 +103,12 @@ export const Home = () => {
             {/* DYNAMICZNE MENU DLA RÓL (RBAC) */}
             {user && (
                 <div className="home-role-menu">
-                    <h3>Dostępne akcje dla Twoich uprawnień:</h3>
+                    <h3>Dostępne akcje:</h3>
                     <div className="home-actions-row">
-                        {/* Każdy zalogowany  może sprawdzić pogodę */}
-                        <button onClick={checkWeather} className="home-btn-action">Sprawdź pogodę na żniwa (Zewnętrzne API)</button>
+                        {/* Przzycisk widoczny dla zalogowanego użytkonika */}
+                        <button onClick={() => navigate('/client')} className="home-btn-action">Panel użytkownika</button>
                         
-                        {/* Przycisk Staff - widoczny dla ROLE_EMPLOYEE oraz ROLE_ADMIN */}
+                        {/* Przycisk Staff - widoczny dla ROLE_STAFF oraz ROLE_ADMIN */}
                         {(user.roles.includes('ROLE_STAFF') || user.roles.includes( 'ROLE_ADMIN')) && (
                             <button onClick={() => navigate('/staff')} className="home-btn-action home-btn-staff">
                                 🛠️ Przejdź do Panelu Staff

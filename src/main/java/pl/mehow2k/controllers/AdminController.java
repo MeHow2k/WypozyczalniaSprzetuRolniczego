@@ -12,8 +12,10 @@ import pl.mehow2k.repositories.RoleRepository;
 import pl.mehow2k.repositories.UserRepository;
 import pl.mehow2k.transfers.GiveRoleRequest;
 import pl.mehow2k.transfers.MachineRequest;
+import pl.mehow2k.transfers.UserInfoResponse;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -28,8 +30,21 @@ public class AdminController {
     // pobranie listu userów
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public ResponseEntity <List<UserInfoResponse>> getAllUsers() {
+        //Pobieramy wszystkich użytkowników z bazy
+        List<User> users = userRepository.findAll();
+        // Mapujemy liste User na listę dto UserInfoResponse
+        List<UserInfoResponse> dtoList = users.stream()
+                .map(user -> new UserInfoResponse(
+                        user.getId(),        // Przekazujemy ID
+                        user.getUsername(),  // Przekazujemy username
+                        user.getRoles().stream()
+                                .map(role -> role.getName()) // Zamieniamy obiekty Role na Stringi ("ROLE_Client")
+                                .collect(Collectors.toList())
+                ))
+                .collect(Collectors.toList());
+        //zwracamy liste
+        return ResponseEntity.ok(dtoList);
     }
 
     @PutMapping("/users/addrole/{id}")

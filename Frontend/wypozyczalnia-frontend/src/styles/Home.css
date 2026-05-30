@@ -27,7 +27,9 @@
 
 .home-actions-row {
     display: flex;
-    gap: 10px;
+    flex-wrap: wrap;        
+    justify-content: center;
+    gap: 20px;
 }
 
 .home-btn-action {

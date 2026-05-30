@@ -5,14 +5,22 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Home } from './pages/Home';
 import { StaffPanel } from './pages/StaffPanel';
 import { AdminPanel } from './pages/AdminPanel';
+import { UserPanel } from './pages/UserPanel';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Główna strona, na której dzieje się cała magia */}
+          {/* Główna strona */}
           <Route path="/" element={<Home />} />
+
+          {/* Chronione panele boczne */}
+          <Route path="/client" element={
+            <ProtectedRoute allowedRoles={['ROLE_CLIENT','ROLE_STAFF', 'ROLE_ADMIN']}>
+              <UserPanel />
+            </ProtectedRoute>
+          } />
 
           {/* Chronione panele boczne */}
           <Route path="/staff" element={

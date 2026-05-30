@@ -65,15 +65,13 @@ export const AdminPanel = () => {
                 return;
             }
 
-        try {
-            // Wysyłamy PUT na adres: /api/admin/addrole/{id}
-            // Ciasteczko z tokenem JWT zostanie dołączone automatycznie dzięki 'withCredentials: true' w axios.js
+        try {                   
             const response = await api.put(`/admin/users/addrole/${UserId}`, {
-                roleName: userRole // To pole trafia do RoleAssignRequest na backendzie
-            });
-            setError(response.data); // Wyświetli komunikat ze Springa, np. "Pomyślnie nadano rolę..."
+                roleName: userRole 
+            },{ responseType: 'text' });
+            setError(response.data);
             setUserId('');
-            setRole('');
+            setUserRole('');
         } catch (err) {    
             const errorMessage = err.response?.data || "Wystąpił nieoczekiwany błąd serwera.";
             setError("Błąd podczas nadawania roli: " + errorMessage);
@@ -94,11 +92,11 @@ export const AdminPanel = () => {
 
         try {
             const response = await api.put(`/admin/users/deleterole/${UserIdtoDeleteRole}`, {
-                roleName: userRoletoDeleteRole // To pole trafia do RoleDeleteRequest na backendzie
+                roleName: userRoletoDeleteRole 
             });
             setError(response.data); 
             setUserIdtoDeleteRole('');
-            setUserRoletoDeleteRole('');
+            setUserRoletoDeleteRole('');           
         } catch (err) {    
             const errorMessage = err.response?.data || "Wystąpił nieoczekiwany błąd serwera.";
             setError("Błąd podczas nadawania roli: " + errorMessage);
@@ -169,7 +167,14 @@ export const AdminPanel = () => {
                     className={`admin-btn ${activeView === 'machines' ? 'active' : ''}`}
                     onClick={fetchMachines}
                 >
-                    🚜 Wyświetl Flotę Maszyn
+                    🚜 Maszyny
+                </button>
+
+                <button 
+                    className={`admin-btn ${activeView === 'logs' ? 'active' : ''}`}
+                    onClick={fetchMachines}
+                >
+                    📙 Logi
                 </button>
 
                 
@@ -192,7 +197,7 @@ export const AdminPanel = () => {
                                     {/* Opcja domyślna */}
                                     <option value="" disabled>-- Wybierz rolę --</option>
                                     {/* Opcje odpowiadające nazwom ról w bazie danych  */}
-                                    <option value="ROLE_USER">Klient </option>
+                                    <option value="ROLE_CLIENT">Klient </option>
                                     <option value="ROLE_STAFF">Pracownik</option>
                                     <option value="ROLE_ADMIN">Administrator</option>
                                 </select>                               
@@ -212,7 +217,7 @@ export const AdminPanel = () => {
                                     {/* Opcja domyślna */}
                                     <option value="" disabled>-- Wybierz rolę --</option>
                                     {/* Opcje odpowiadające nazwom ról w bazie danych  */}
-                                    <option value="ROLE_USER">Klient </option>
+                                    <option value="ROLE_CLIENT">Klient </option>
                                     <option value="ROLE_STAFF">Pracownik</option>
                                    
                                 </select>                               
@@ -300,9 +305,9 @@ export const AdminPanel = () => {
                                     <td >{m.pricePerDay} PLN</td>
                                     <td >
                                         {m.available ? (
-                                            <span style={{ color: 'green', fontWeight: 'bold' }}>🟢 Wolny</span>
+                                            <span style={{ color: 'green', fontWeight: 'bold' }}>🟢 Dostępny</span>
                                         ) : (
-                                            <span style={{ color: 'red', fontWeight: 'bold' }}>🔴 Wypożyczony</span>
+                                            <span style={{ color: 'red', fontWeight: 'bold' }}>🔴 Niedostępny</span>
                                         )}
                                     </td>
                                 </tr>
@@ -313,7 +318,7 @@ export const AdminPanel = () => {
             )}
 
             {activeView === 'none' && !error && (
-                <p className="admin-info-placeholder" >Wybierz jedną z opcji powyżej, aby załadować dane relacyjne z bazy PostgreSQL.</p>
+                <p className="admin-info-placeholder" >Wybierz jedną z opcji powyżej, aby załadować dane.</p>
             )}
 
             <hr className="admin-hr" />
