@@ -66,11 +66,11 @@ public class AuthController {
             String jwt = authService.loginUser(loginRequest);
 
             ResponseCookie jwtCookie = ResponseCookie.from("jwtToken", jwt)
-                    .path("/api")           // Ciasteczko będzie wysyłane tylko do endpointów zaczynających się od /api
+                    .path("/")           // Ciasteczko będzie wysyłane tylko do endpointów zaczynających się od /api
                     .maxAge(24 * 60 * 60)   // Czas życia: 24 godziny
                     .httpOnly(true)         // JS nie ma dostępu do ciasteczka (Ochrona przed XSS)
-                    .secure(false)          // W produkcji dajemy TRUE (wymaga HTTPS). Na localhost zostawiamy false.
-                    .sameSite("Lax")        // Ochrona przed CSRF potem na STRICT!!
+                    .secure(true)          // W produkcji dajemy TRUE (wymaga HTTPS). Na localhost zostawiamy false.
+                    .sameSite("Lax")        // Ochrona przed CSRF
                     .build();
 
             // Pobieramy role, aby przesłać je frontendowi do konfiguracji widoku (UX)
@@ -88,7 +88,7 @@ public class AuthController {
     public ResponseEntity<?> logoutUser() {
         // Przy wylogowaniu wysyłamy puste ciasteczko z czasem ważności 0, aby przeglądarka je skasowała
         ResponseCookie cookie = ResponseCookie.from("jwtToken", "")
-                .path("/api")
+                .path("/")
                 .maxAge(0)
                 .httpOnly(true)
                 .build();

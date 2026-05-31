@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # 1. BAZA DANYCH
+  db:
+    image: postgres:15-alpine
+    container_name: rental-postgres-db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - rental-network
+
+  # 2. BACKEND (Spring Boot)
+  backend:
+    build: .
+    container_name: rental-spring-backend
+    ports:
+      - "8443:8443"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - ROUTING_API_KEY=${ROUTING_API_KEY}
+    volumes:
+      - ./Cert/keystore.p12:/app/Cert/keystore.p12
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - rental-network
+
+  # 3. FRONTEND (React + Vite)
+  frontend:
+    build: ./Frontend/wypozyczalnia-frontend
+    container_name: rental-react-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - rental-network
+
+volumes:
+  postgres_data:
+
+networks:
+  rental-network:
+    driver: bridge

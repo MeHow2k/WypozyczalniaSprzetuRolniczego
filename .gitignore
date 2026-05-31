@@ -27,3 +27,4 @@ Frontend/wypozyczalnia-frontend/*.local
 *.njsproj
 *.sln
 *.sw?
+.env
