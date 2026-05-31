@@ -8,6 +8,7 @@ export const AdminPanel = () => {
     const [error, setError] = useState('');
     const [users, setUsers] = useState([]);
     const [machines, setMachines] = useState([]);
+    const [logs, setLogs] = useState([]);
 
     const [UserId, setUserId] = useState("");
     const [userRole, setUserRole] = useState("");
@@ -20,7 +21,7 @@ export const AdminPanel = () => {
 
     const [machineIdToDelete, setMachineIdToDelete] = useState("");
     
-    // Nowy stan określający, co aktualnie wyświetlamy: 'users', 'machines' lub 'none'
+    // Nowy stan określający, co aktualnie wyświetlamy: 'users', 'machines', 'logs' lub 'none'
     const [activeView, setActiveView] = useState('none'); 
     
     const navigate = useNavigate();
@@ -49,6 +50,20 @@ export const AdminPanel = () => {
             })
             .catch(err => {
                 setError("Błąd podczas pobierania listy maszyn.");
+                setActiveView('none');
+            });
+    };
+
+    // Funkcja pobierająca logi
+    const fetchLogs = () => {
+        api.get('/admin/logs')
+            .then(res => {
+                setLogs(res.data);
+                setError('');
+                setActiveView('logs');
+            })
+            .catch(err => {
+                setError("Błąd podczas pobierania listy logów.");
                 setActiveView('none');
             });
     };
@@ -172,7 +187,7 @@ export const AdminPanel = () => {
 
                 <button 
                     className={`admin-btn ${activeView === 'logs' ? 'active' : ''}`}
-                    onClick={fetchMachines}
+                    onClick={fetchLogs}
                 >
                     📙 Logi
                 </button>
@@ -240,6 +255,32 @@ export const AdminPanel = () => {
                                     <td >#{u.id}</td>
                                     <td ><strong>{u.username}</strong></td>
                                     <td >{u.roles && u.roles.map(r => typeof r === 'object' ? r.name : r).join(', ')}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {/* TABELA: LOGI */}
+            {activeView === 'logs' && (
+                <div>
+
+                    <h3>Logi systemowe:</h3>
+                    <table className="admin-table">
+                        <thead>
+                            <tr>                               
+                                <th >Timestamp</th>
+                                <th >Opis</th>
+                                <th >Poziom</th>                            
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {logs.map(l => (
+                                <tr key={l.id}>
+                                    <td >{l.timestamp}</td>
+                                    <td >{l.message}</td>
+                                    <td >{l.level}</td>                                                            
                                 </tr>
                             ))}
                         </tbody>

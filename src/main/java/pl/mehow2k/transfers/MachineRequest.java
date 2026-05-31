@@ -5,7 +5,9 @@ import java.math.BigDecimal;
 public class MachineRequest {
 
     private String name;
+
     private String category;
+
     private BigDecimal pricePerDay;
 
     public String getName() { return name; }

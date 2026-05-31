@@ -54,7 +54,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception ex) {
-            // W logach produkcyjnych warto odnotować błąd walidacji tokenu
+
         }
 
         filterChain.doFilter(request, response);

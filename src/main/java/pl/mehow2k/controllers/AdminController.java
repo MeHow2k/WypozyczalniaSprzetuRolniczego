@@ -3,10 +3,13 @@ package pl.mehow2k.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import pl.mehow2k.models.LogRecord;
 import pl.mehow2k.models.Machine;
 import pl.mehow2k.models.Role;
 import pl.mehow2k.models.User;
+import pl.mehow2k.repositories.LogRepository;
 import pl.mehow2k.repositories.MachineRepository;
 import pl.mehow2k.repositories.RoleRepository;
 import pl.mehow2k.repositories.UserRepository;
@@ -15,6 +18,8 @@ import pl.mehow2k.transfers.MachineRequest;
 import pl.mehow2k.transfers.UserInfoResponse;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @RestController
@@ -27,6 +32,12 @@ public class AdminController {
     private RoleRepository roleRepository;
     @Autowired
     private MachineRepository machineRepository;
+    @Autowired
+    private LogRepository logRepository;
+
+    @Autowired
+    private Logger logger;
+
     // pobranie listu userów
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
@@ -47,9 +58,25 @@ public class AdminController {
         return ResponseEntity.ok(dtoList);
     }
 
+    // pobranie logów
+    @GetMapping("/logs")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<LogRecord>> getAllLogs() {
+
+        // Pobieramy logi posortowane chronologicznie (od najnowszych)
+        List<LogRecord> logs = logRepository.findAllByOrderByIdDesc();
+
+        // Zwracamy czystą listę obiektów LogRecord do frontendu
+        return ResponseEntity.ok(logs);
+    }
+
+    //dodanie roli użytkownikowi
     @PutMapping("/users/addrole/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> assignRoleToUser(@PathVariable Long id, @RequestBody GiveRoleRequest request) {
+
+        // Wyciągamy login zalogowanego administratora, który wywołał ten endpoint
+        String adminUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
         //Szukamy użytkownika w bazie po ID
         User user = userRepository.findById(id)
@@ -68,12 +95,23 @@ public class AdminController {
         user.getRoles().add(role);
         userRepository.save(user);
 
+        //log
+        String logString = String.format(
+                "ADMINISTRACJA: Administrator [%s] pomyślnie nadał rolę %s użytkownikowi %s (ID: %d)",
+                adminUsername, request.getRoleName(), user.getUsername(), user.getId()
+        );
+        logger.info(logString);
+
         return ResponseEntity.ok("Pomyślnie nadano rolę " + request.getRoleName() + " użytkownikowi " + user.getUsername());
     }
 
+    //usunięcie roli użytkownika
     @PutMapping("/users/deleterole/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteRoleFromUser(@PathVariable Long id, @RequestBody GiveRoleRequest request) {
+
+        // Wyciągamy login zalogowanego administratora, który wywołał ten endpoint
+        String adminUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
         if ("ROLE_ADMIN".equalsIgnoreCase(request.getRoleName())) {
             return ResponseEntity.badRequest().body("Nie można odebrać roli ADMINISTRATORA.");
@@ -93,13 +131,23 @@ public class AdminController {
         user.getRoles().remove(role);
         userRepository.save(user);
 
+        //log
+        String logString = String.format(
+                "ADMINISTRACJA: Administrator [%s] pomyślnie odebrał rolę %s użytkownikowi %s (ID: %d)",
+                adminUsername, request.getRoleName(), user.getUsername(), user.getId()
+        );
+        logger.warning(logString);
+
         return ResponseEntity.ok("Pomyślnie odebrano rolę " + request.getRoleName() + " użytkownikowi " + user.getUsername());
     }
 
-
+    //dodanie nowej maszyny do bazy
     @PostMapping("/machines/addmachine")
-    @PreAuthorize("hasRole('ADMIN')") // Tylko administrator ma prawo rozbudowywać flotę maszyn
+    @PreAuthorize("hasRole('ADMIN')") //
     public ResponseEntity<?> addMachine(@RequestBody MachineRequest request) {
+
+        // Wyciągamy login zalogowanego administratora, który wywołał ten endpoint
+        String adminUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
         if (request.getName() == null || request.getName().trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Error: Nazwa maszyny nie może być pusta!");
@@ -113,22 +161,41 @@ public class AdminController {
         machine.setPricePerDay(request.getPricePerDay());
         machine.setAvailable(true);
 
-        // Zapis do bazy
         Machine savedMachine = machineRepository.save(machine);
 
-        return ResponseEntity.ok("Pomyślnie dodano nową maszynę: " + savedMachine.getName() + " (ID: " + savedMachine.getId() + ")");}
+        //log
+        String logString = String.format(
+                "ADMINISTRACJA: Administrator [%s] pomyślnie dodał maszynę: %s, kategorii: %s, cena: %s, o (ID: %d)",
+                adminUsername, request.getName(), request.getCategory(),request.getPricePerDay() , savedMachine.getId()
+        );
+        logger.info(logString);
 
+        return ResponseEntity.ok("Pomyślnie dodano nową maszynę: " + savedMachine.getName() + " (ID: " + savedMachine.getId() + ")");
+    }
+
+    //usunięcie maszyny z bazy
     @DeleteMapping("/machines/deletemachine/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteMachine(@PathVariable Long id) {
+
+        String adminUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
         // Sprawdzamy, czy maszyna istnieje w bazie danych
         boolean exists = machineRepository.existsById(id);
         if (!exists) {
             return ResponseEntity.status(404).body("Nie znaleziono maszyny o ID: " + id);
         }
-        //Usunięcie maszyny z tabeli 'machines'
+
+        //Usunięcie maszyny
         machineRepository.deleteById(id);
+
+        //log
+        String logString = String.format(
+                "ADMINISTRACJA: Administrator [%s] pomyślnie usunął maszynę o (ID: %d)",
+                adminUsername, id
+        );
+        logger.warning(logString);
+
         return ResponseEntity.ok("Maszyna o ID " + id + " została pomyślnie usunięta z systemu.");
     }
 

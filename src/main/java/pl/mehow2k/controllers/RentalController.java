@@ -1,6 +1,5 @@
 package pl.mehow2k.controllers;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +17,9 @@ import pl.mehow2k.repositories.ReservationRepository;
 import pl.mehow2k.repositories.UserRepository;
 import pl.mehow2k.transfers.*;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @RestController
@@ -33,6 +34,8 @@ import java.util.stream.Collectors;
 
         @Autowired
         private UserRepository userRepository;
+        @Autowired
+        private Logger logger;
 
         //Do obliczania ceny za trase
         // Wstrzykujemy klucz zewnętrznego API z pliku konfiguracyjnego wraz z wspolrzednymi firmy i ceną/km
@@ -54,7 +57,7 @@ import java.util.stream.Collectors;
             return machineRepository.findAll();
         }
 
-        // Rezerwacja maszyn
+        // Rezerwacja maszyn przez klienta
         @PostMapping("/reserve")
         @PreAuthorize("hasRole('CLIENT')")
         public ResponseEntity<?> reserveMachine(@RequestBody ReservationRequest request) {
@@ -74,6 +77,19 @@ import java.util.stream.Collectors;
                 return ResponseEntity.badRequest().body("Data rozpoczęcia nie może być późniejsza niż data zakończenia.");
             }
 
+            LocalDate today = LocalDate.now();
+            LocalDate maxFutureDate = today.plusYears(1); // Maksymalnie 1 rok w przód
+
+            //Blokada dat z przeszłości
+            if (request.getStartDate().isBefore(today)) {
+                return ResponseEntity.badRequest().body("Nie można zarezerwować maszyny z datą wsteczną.");
+            }
+
+            //Blokada rezerwacji zbyt wcześnie (np.user próbuje rezerwować na za 2 lata)
+            if (request.getStartDate().isAfter(maxFutureDate) || request.getEndDate().isAfter(maxFutureDate)) {
+                return ResponseEntity.badRequest().body("Nie można rezerwować sprzętu z wyprzedzeniem większym niż rok.");
+            }
+
             Reservation reservation = new Reservation();
             reservation.setUser(user);
             reservation.setMachine(machine);
@@ -82,9 +98,17 @@ import java.util.stream.Collectors;
             reservation.setStatus(ReservationStatus.PENDING);
 
             reservationRepository.save(reservation);
+            //log
+            String logString = String.format(
+                    "REZERWACJE: Użytkownik [%s] (ID: %d) wysłał żądanie rezerwacji maszyny %s (ID: %d) na czas od %s do %s",
+                    currentUsername, user.getId(), machine.getName(),machine.getId(), reservation.getStartDate().toString(),reservation.getEndDate().toString()
+            );
+            logger.info(logString);
+
             return ResponseEntity.ok("Rezerwacja " + machine.getName() + " została złożona i oczekuje na weryfikację pracownika.");
         }
 
+        //pobranie rezerwacji klienta
         @GetMapping("/my-reservations")
         @PreAuthorize("hasRole('CLIENT')")
         public ResponseEntity<List<UserReservationResponse>> getUserReservations() {
@@ -114,15 +138,20 @@ import java.util.stream.Collectors;
             return ResponseEntity.ok(responseList);
         }
 
+        //pobranie wszystkich rezerwacji
         @GetMapping("/reservations")
         @PreAuthorize("hasRole('STAFF') or hasRole('ADMIN')")
         public ResponseEntity<List<Reservation>> getAllReservations() {
             return ResponseEntity.ok(reservationRepository.findAll());
         }
 
+        //zmiana statusu rezerwacji
         @PutMapping("/updatestatus/{id}")
         @PreAuthorize("hasRole('STAFF')")
         public ResponseEntity<?> updateReservationStatus(@PathVariable Long id, @RequestBody ReservationStatusRequest request) {
+
+            //pobranie prascownika wykonujacego request
+            String staffUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
             // Walidacja czy DTO nie jest puste
             if (request.getStatus() == null) {
@@ -132,9 +161,19 @@ import java.util.stream.Collectors;
             Reservation reservation = reservationRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Nie znaleziono rezerwacji."));
 
+            String reservationOriginalStatus = String.valueOf(reservation.getStatus());
+
+            if (!reservation.getMachine().isAvailable() && reservation.getStatus()==ReservationStatus.PENDING) {
+                // Jeśli maszyna jest niedostępna, a ktoś próbuje ustawić status INNY niż REJECTED
+                if (request.getStatus() != ReservationStatus.REJECTED) {
+                    return ResponseEntity.badRequest()
+                            .body("Nie można zatwierdzić rezerwacji: Maszyna jest obecnie niedostępna.");
+                }
+            }
             // Zmieniamy status (np. na APPROVED lub REJECTED)
             reservation.setStatus(request.getStatus());
 
+            //jesli zaakceptowano, maszyna staje sie niedostepna
             if (request.getStatus() == ReservationStatus.APPROVED) {
                 Machine machine = reservation.getMachine();
                 machine.setAvailable(false);
@@ -150,85 +189,85 @@ import java.util.stream.Collectors;
             }
 
             reservationRepository.save(reservation);
+
+            //log
+            String logString = String.format(
+                    "REZERWACJE: Pracownik [%s] zmienił status rezerwacji (ID: %d) użytkownika %s (ID: %d) z %s na %s",
+                    staffUsername, reservation.getId(), reservation.getUser().getUsername(),reservation.getUser().getId(), reservationOriginalStatus, request.getStatus()
+            );
+            logger.info(logString);
+
             return ResponseEntity.ok("Zmieniono status rezerwacji o id: "+id+" na: " + request.getStatus());
         }
 
+        //za pomocą API OpenRouteService, klient moze obliczyć koszt dojazdu maszyny lawetą
+        @PostMapping("/calculate-transport")
+        @PreAuthorize("hasRole('CLIENT')")
+        public ResponseEntity<?> calculateTransportByAddress(@RequestBody TransportRequest request) {
 
-        // Dodawanie nowego sprzętu - admin
-        @PostMapping("/admin/machines")
-        @PreAuthorize("hasRole('ADMIN')")
-        public ResponseEntity<?> addMachine(@RequestBody Machine machine) {
-            machineRepository.save(machine);
-            return ResponseEntity.ok("Nowy sprzęt rolniczy dodany do bazy danych.");
-        }
-
-    @PostMapping("/calculate-transport")
-    @PreAuthorize("hasRole('CLIENT')")
-    public ResponseEntity<?> calculateTransportByAddress(@RequestBody TransportRequest request) {
-
-        if (request.getAddress() == null || request.getAddress().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Error: Adres nie może być pusty!");
-        }
-
-        RestTemplate restTemplate = new RestTemplate();
-
-        //Zmiana adresu na wspolrzednie:
-        // Szukamy lokalizacji w Polsce (boundary.country=POL)
-        String geocodeUrl = String.format(
-                "https://api.openrouteservice.org/geocode/search?api_key=%s&text=%s&boundary.country=POL&size=1",
-                apiKey, request.getAddress()
-        );
-
-        double clientLon;
-        double clientLat;
-
-        try {
-            ResponseEntity<JsonNode> geocodeResponse = restTemplate.getForEntity(geocodeUrl, JsonNode.class);
-            JsonNode coordinatesNode = geocodeResponse.getBody()
-                    .path("features")
-                    .get(0)
-                    .path("geometry")
-                    .path("coordinates");
-
-            if (coordinatesNode.isMissingNode()) {
-                return ResponseEntity.badRequest().body("Nie znaleziono podanej miejscowości w Polsce. Sprawdź literówki.");
+            if (request.getAddress() == null || request.getAddress().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Adres nie może być pusty!");
             }
 
-            // OpenRouteService w geocode zwraca tablicę: [longitude, latitude]
-            clientLon = coordinatesNode.get(0).asDouble();
-            clientLat = coordinatesNode.get(1).asDouble();
+            RestTemplate restTemplate = new RestTemplate();
 
-        } catch (Exception e) {
-            System.out.println("GEOCODING ERROR: " + e.getMessage());
-            return ResponseEntity.status(502).body("Błąd serwera lokalizacji podczas rozpoznawania adresu.");
+            //Zmiana adresu na wspolrzednie:
+            // Szukamy lokalizacji w Polsce (boundary.country=POL)
+            String geocodeUrl = String.format(
+                    "https://api.openrouteservice.org/geocode/search?api_key=%s&text=%s&boundary.country=POL&size=1",
+                    apiKey, request.getAddress()
+            );
+
+            double clientLon;
+            double clientLat;
+
+            try {
+                ResponseEntity<JsonNode> geocodeResponse = restTemplate.getForEntity(geocodeUrl, JsonNode.class);
+                JsonNode coordinatesNode = geocodeResponse.getBody()
+                        .path("features")
+                        .get(0)
+                        .path("geometry")
+                        .path("coordinates");
+
+                if (coordinatesNode.isMissingNode()) {
+                    return ResponseEntity.badRequest().body("Nie znaleziono podanej miejscowości w Polsce. Sprawdź literówki.");
+                }
+
+                // OpenRouteService w geocode zwraca tablicę: [longitude, latitude]
+                clientLon = coordinatesNode.get(0).asDouble();
+                clientLat = coordinatesNode.get(1).asDouble();
+
+            } catch (Exception e) {
+                System.out.println("GEOCODING ERROR: " + e.getMessage());
+                return ResponseEntity.status(502).body("Błąd serwera lokalizacji podczas rozpoznawania adresu.");
+            }
+
+            // kalkulacja trasy w oparciu o wspołrzedzne
+            String routeUrl = String.format(
+                    "https://api.openrouteservice.org/v2/directions/driving-car?api_key=%s&start=%s,%s&end=%s,%s",
+                    apiKey, depotLon, depotLat, clientLon, clientLat
+            );
+
+            try {
+                ResponseEntity<JsonNode> routeResponse = restTemplate.getForEntity(routeUrl, JsonNode.class);
+
+                double distanceInMeters = routeResponse.getBody()
+                        .path("features")
+                        .get(0)
+                        .path("properties")
+                        .path("summary")
+                        .path("distance")
+                        .asDouble();
+
+                double distanceKm = Math.round((distanceInMeters / 1000.0) * 100.0) / 100.0;
+                double totalCost = Math.round((distanceKm * costPerKm) * 100.0) / 100.0;
+
+                return ResponseEntity.ok(new TransportResponse(distanceKm, totalCost));
+
+            } catch (Exception e) {
+                return ResponseEntity.status(502).body("Nie udało się wyznaczyć trasy drogowej do tej miejscowości.");
+            }
         }
-
-        // kalkulacja trasy w oparciu o wspołrzedzne
-        String routeUrl = String.format(
-                "https://api.openrouteservice.org/v2/directions/driving-car?api_key=%s&start=%s,%s&end=%s,%s",
-                apiKey, depotLon, depotLat, clientLon, clientLat
-        );
-
-        try {
-            ResponseEntity<JsonNode> routeResponse = restTemplate.getForEntity(routeUrl, JsonNode.class);
-
-            double distanceInMeters = routeResponse.getBody()
-                    .path("features")
-                    .get(0)
-                    .path("properties")
-                    .path("summary")
-                    .path("distance")
-                    .asDouble();
-
-            double distanceKm = Math.round((distanceInMeters / 1000.0) * 100.0) / 100.0;
-            double totalCost = Math.round((distanceKm * costPerKm) * 100.0) / 100.0;
-
-            return ResponseEntity.ok(new TransportResponse(distanceKm, totalCost));
-
-        } catch (Exception e) {
-            return ResponseEntity.status(502).body("Nie udało się wyznaczyć trasy drogowej do tej miejscowości.");
-        }
-    }
 
     }
 

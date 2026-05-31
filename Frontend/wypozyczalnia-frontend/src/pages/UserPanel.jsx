@@ -90,7 +90,7 @@ export const UserPanel = () => {
                                         <option value="COMPLETED">Zakończone (Sprzęt zwrócony)</option>
                                         <option value="REJECTED">Odrzucone</option>
                                     </select> 
-                    <button type="submit" > Filtruj </button><p></p>               
+                                  
                 {myReservations.length === 0 ? (
                     <p style={{ fontStyle: 'italic', color: '#666' }}>Nie dokonałeś jeszcze żadnych rezerwacji maszyn.</p>
                 ) : filteredReservations.length === 0 ? (

@@ -3,21 +3,29 @@ package pl.mehow2k.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import javax.crypto.SecretKey;
 
+
 @Component
 public class JWTTokenProvider {
 
-    // sekret - w produkcji musi być ukryty!
-    private final String JWT_SECRET = "twoj_bardzo_dlugi_i_super_tajny_klucz_do_podpisywania_tokenow_jwt_123456";
+    // Spring wstrzykuje to pole zaraz po utworzeniu obiektu
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+
     private final long JWT_EXPIRATION_MS = 86400000; // 24 godziny ważności tokenu
 
+    // pobranie secreta dla tokenu z app properites -> zmiennej środowiskowej
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(JWT_SECRET.getBytes(StandardCharsets.UTF_8));
+        if (jwtSecret == null || jwtSecret.trim().isEmpty()) {
+            throw new IllegalStateException("Błąd: Klucz jwt.secret nie został załadowany z application.properties!");
+        }
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
     // Generowanie tokenu po udanym logowaniu
@@ -27,14 +35,14 @@ public class JWTTokenProvider {
 
         return Jwts.builder()
                 .subject(username)
-                .claim("roles", roles) // Wstrzykujemy role użytkownika do wnętrza tokenu
+                .claim("roles", roles)
                 .issuedAt(now)
                 .expiration(expiryDate)
-                .signWith(getSigningKey())
+                .signWith(getSigningKey()) // Metoda wyciągnie już prawidłowy klucz
                 .compact();
     }
 
-    // Wyciąganie login użytkownika z tokenu
+    // Wyciąganie loginu użytkownika z tokenu
     public String getUsernameFromJWT(String token) {
         Claims claims = Jwts.parser()
                 .verifyWith(getSigningKey())
@@ -51,7 +59,7 @@ public class JWTTokenProvider {
             Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token);
             return true;
         } catch (Exception ex) {
-            // W razie błędu (zmanipulowany token, wygasły) zwracamy false
+            System.out.println("JWT Validation Error: " + ex.getMessage());
             return false;
         }
     }

@@ -32,9 +32,9 @@ public class AuthService {
 
     // REJESTRACJA NOWEGO UŻYTKOWNIKA
     public String registerUser(RegisterRequest registerRequest) {
-        // Sprawdzenie, czy email jest już zajęty (Ochrona przed duplikatami)
+        // Sprawdzenie, czy username jest już zajęty
         if (userRepository.findByUsername(registerRequest.getUsername()).isPresent()) {
-            throw new RuntimeException("Error: Email jest już zajęty!");
+            throw new RuntimeException("Login jest już zajęty!");
         }
 
         User user = new User();
@@ -53,16 +53,15 @@ public class AuthService {
         return "Użytkownik zarejestrowany pomyślnie!";
     }
 
-    // 2. LOGOWANIE I GENEROWANIE TOKENU
+    //LOGOWANIE I GENEROWANIE TOKENU
     public String loginUser(LoginRequest loginRequest) {
         Optional<User> userOpt = userRepository.findByUsername(loginRequest.getUsername());
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
 
-            // BEZPIECZEŃSTWO: Weryfikacja przesłanego hasła z hashem z bazy danych
+            // Weryfikacja przesłanego hasła z hashem z bazy danych
             if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-
                 // Hasła się zgadzają -> generujemy token JWT
                 //map Role na stringi
                 List<String> roleNames = user.getRoles().stream()
@@ -71,9 +70,6 @@ public class AuthService {
                 return tokenProvider.generateToken(user.getUsername(), roleNames);
             }
         }
-
-        // Ze względów bezpieczeństwa zwracamy ogólny komunikat, aby nie podpowiadać hakerowi,
-        // czy pomylił login, czy hasło.
         throw new RuntimeException("Błędny login lub hasło!");
     }
 }

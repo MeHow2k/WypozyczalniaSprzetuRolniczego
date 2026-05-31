@@ -1,7 +1,10 @@
 package pl.mehow2k.transfers;
 
+
 public class LoginRequest {
+
     private String username;
+
     private String password;
 
     // Gettery i Settery

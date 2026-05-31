@@ -19,6 +19,9 @@ export const Home = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+
     // Pobieranie maszyn (zawsze publiczne)
     useEffect(() => {
         api.get('/rental/machines')
@@ -38,8 +41,24 @@ export const Home = () => {
     const handleAuthSubmit = async (e) => {
         e.preventDefault();
         if (isRegisterMode) {
+            //walidacja danych formularza rejestracji 
+            if (username.length < 8) {
+                setAlert("Login musi składać się z co najmniej 8 znaków.");
+                return;
+            }
+            if (password.length < 8) {
+                setAlert("Słabe hasło: Hasło musi składać się z co najmniej 8 znaków.");
+                return;
+            }
+            const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        
+        if (!passwordRegex.test(password)) {
+            setAlert("Błąd formularza: Hasło musi zawierać co najmniej jedną wielką literę, jedną cyfrę oraz jeden znak specjalny (@$!%*?&).");
+            return; 
+        }
+
             try {
-                // Domyślnie rejestrujemy jako zwykły user
+                // request rejestracji
                 await api.post('/auth/register', { username, password });
                 setAlert("Zarejestrowano pomyślnie! Teraz możesz się zalogować.");
                 setIsRegisterMode(false);
@@ -63,22 +82,30 @@ export const Home = () => {
 
 
     const handleReserveMachine = async (machineId) => {
-    try {
-        // Symulujemy rezerwację od dzisiaj na kolejne 3 dni (w pełnej wersji można dać kalendarz <input type="date">)
-        const today = new Date().toISOString().split('T')[0];
-        const nextWeek = new Date();
-        nextWeek.setDate(nextWeek.getDate() + 3);
-        const endDate = nextWeek.toISOString().split('T')[0];
+        //walidacja dat
+    if (!startDate || !endDate) {
+            setAlert("Proszę wybrać datę rozpoczęcia i zakończenia rezerwacji!");
+            return;
+    }
+    if (new Date(endDate) < new Date(startDate)) {
+        setAlert("Data zakończenia nie może być wcześniejsza niż data rozpoczęcia!");
+        return;
+    }
 
+
+    try {
+        
         const response = await api.post('/rental/reserve', {
             machineId: machineId,
-            startDate: today,
+            startDate: startDate,
             endDate: endDate
         });
-
         setAlert(response.data); 
+        setStartDate('');
+        setEndDate('');
+
     } catch (err) {
-        setAlert("Błąd rezerwacji: " + (err.response?.data || "Brak autoryzacji"));
+        setAlert("Błąd rezerwacji: " + (err.response?.data || "Brak autoryzacji/Maszyna niedostępna."));
     }
 };
 
@@ -95,7 +122,7 @@ export const Home = () => {
                         <button onClick={() => navigate('/client')} className="home-btn-action">Panel użytkownika</button>
                         
                         {/* Przycisk Staff - widoczny dla ROLE_STAFF oraz ROLE_ADMIN */}
-                        {(user.roles.includes('ROLE_STAFF') || user.roles.includes( 'ROLE_ADMIN')) && (
+                        {user.roles.includes('ROLE_STAFF') && (
                             <button onClick={() => navigate('/staff')} className="home-btn-action home-btn-staff">
                                 🛠️ Przejdź do Panelu Staff
                             </button>
@@ -119,6 +146,11 @@ export const Home = () => {
                     <form onSubmit={handleAuthSubmit} className="home-auth-form">
                         <input type="username" placeholder="Nazwa użytkownika" value={username} onChange={e => setUsername(e.target.value)} required className="home-auth-input" />
                         <input type="password" placeholder="Hasło" value={password} onChange={e => setPassword(e.target.value)} required className="home-auth-input" />
+                        {isRegisterMode && (
+                        <p style={{ fontSize: '0.75rem', color: '#d84141', marginTop: '-5px', marginBottom: '15px', textAlign: 'left', lineHeight: '1.2' }}>
+                            💡 Hasło musi mieć min. 8 znaków, zawierać dużą literę, cyfrę oraz znak specjalny (@$!%*?&).
+                        </p>
+                    )}
                         <button type="submit" className="home-auth-submit-btn">
                             {isRegisterMode ? "Zarejestruj się" : "Zaloguj się"}
                         </button>
@@ -133,6 +165,36 @@ export const Home = () => {
             )}
 
             <hr className="home-divider" />
+            {/* Sekcja z wyborem terminu */}  
+                {user && user.roles.includes("ROLE_CLIENT") && (
+                    <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '5px', border: '1px solid #ddd', marginBottom: '20px', maxWidth: '600px' }}>
+                        <h3 style={{ marginTop: 0, fontSize: '1.1rem', color: '#333' }}>🗓️ Wybierz termin wynajmu sprzętu:</h3>
+                        <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '3px' }}>Data odbioru:</label>
+                                <input 
+                                    type="date" 
+                                    value={startDate} 
+                                    min={new Date().toISOString().split('T')[0]} // Blokuje wybór dat z przeszłości w kalendarzu systemowym
+                                    onChange={e => setStartDate(e.target.value)}
+                                    style={{ padding: '6px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '3px' }}>Data zwrotu:</label>
+                                <input 
+                                    type="date" 
+                                    value={endDate} 
+                                    min={startDate || new Date().toISOString().split('T')[0]} // Blokuje zwrot przed dniem odbioru
+                                    onChange={e => setEndDate(e.target.value)}
+                                    style={{ padding: '6px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+
 
             {/* KATALOG MASZYN (PUBLICZNY) */}
             <h2>🚜 Dostępny sprzęt rolniczy na stanie:</h2>

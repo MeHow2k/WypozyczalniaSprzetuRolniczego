@@ -66,7 +66,7 @@ export const StaffPanel = () => {
             <Navbar/>
             <h2>🛠️ Panel Zarządzania dla Pracowników</h2>
             <p style={{ color: 'red', fontWeight: 'bold' }}>{alert}</p>
-            <p>z</p>
+            
             <div className="admin-menu-box">
                 <button 
                     className={`admin-btn ${activeView === 'requests' ? 'active' : ''}`}
