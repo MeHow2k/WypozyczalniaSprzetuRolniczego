@@ -62,8 +62,7 @@ public class AuthService {
 
             // Weryfikacja przesłanego hasła z hashem z bazy danych
             if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-                // Hasła się zgadzają -> generujemy token JWT
-                //map Role na stringi
+
                 List<String> roleNames = user.getRoles().stream()
                         .map(Role::getName)
                         .collect(Collectors.toList());

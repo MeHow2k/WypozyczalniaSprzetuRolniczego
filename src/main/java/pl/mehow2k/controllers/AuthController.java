@@ -66,14 +66,14 @@ public class AuthController {
             String jwt = authService.loginUser(loginRequest);
 
             ResponseCookie jwtCookie = ResponseCookie.from("jwtToken", jwt)
-                    .path("/")           // Ciasteczko będzie wysyłane tylko do endpointów zaczynających się od /api
-                    .maxAge(24 * 60 * 60)   // Czas życia: 24 godziny
-                    .httpOnly(true)         // JS nie ma dostępu do ciasteczka (Ochrona przed XSS)
-                    .secure(true)          // W produkcji dajemy TRUE (wymaga HTTPS). Na localhost zostawiamy false.
-                    .sameSite("Lax")        // Ochrona przed CSRF
+                    .path("/")
+                    .maxAge(24 * 60 * 60)
+                    .httpOnly(true)
+                    .secure(true)
+                    .sameSite("Lax")
                     .build();
 
-            // Pobieramy role, aby przesłać je frontendowi do konfiguracji widoku (UX)
+            // Pobieramy role, aby przesłać je frontendowi
             User user = userRepository.findByUsername(loginRequest.getUsername()).orElseThrow();
             List<String> roleNames = user.getRoles().stream().map(Role::getName).toList();
 

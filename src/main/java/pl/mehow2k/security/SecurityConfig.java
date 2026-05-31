@@ -43,12 +43,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/rental/machines/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/staff/**").hasAnyRole("STAFF","ADMIN")
-                        .requestMatchers("/api/user/**").hasAnyRole("USER", "STAFF", "ADMIN")
                         .anyRequest().authenticated()
                 );
 
-        // KLUCZOWE: Dodajemy nasz filtr przed standardowym filtrem UsernamePasswordAuthenticationFilter
+        //  Dodajemy  filtr przed standardowym filtrem UsernamePasswordAuthenticationFilter
         http.addFilterBefore(jwtAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
